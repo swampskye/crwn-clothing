@@ -1,8 +1,9 @@
-import { useState } from "react"
+import { useContext, useState } from "react"
 import { signInWithGooglePopup, createUserDocumentFromAuth, signinAuthUserWithEmailAndPassword } from "../../utils/firebase/firebase";
 import './signin.scss'
 import FormInput from "../form-input/form-input";
 import Button from "../button/button";
+import { UserContext } from "../contexts/userContext";
 const defaultFormFields = {
     email: '',
     password: '',
@@ -15,15 +16,18 @@ const SignInForm = () => {
     const [formFields, setFormFields] = useState(defaultFormFields);
     const { email, password } = formFields
 
+    const { setCurrentUser } = useContext(UserContext)
+
 
     const resetFormFields = () => {
         setFormFields(defaultFormFields)
     }
 
 
-    const logGoogleUser = async () => {
+    const signInWithGoogle = async () => {
         const { user } = await signInWithGooglePopup();
         await createUserDocumentFromAuth(user)
+        setCurrentUser(user)
     }
 
     const handleChange = (event) => {
@@ -36,8 +40,9 @@ const SignInForm = () => {
         event.preventDefault();
 
         try {
-            const response = await signinAuthUserWithEmailAndPassword(email, password);
-            console.log(response)
+            const { user } = await signinAuthUserWithEmailAndPassword(email, password);
+            // console.log(response)
+            setCurrentUser(user)
             resetFormFields()
         } catch (error) {
             switch (error.code) {
@@ -64,7 +69,7 @@ const SignInForm = () => {
                 <FormInput label='Password' type="password" required onChange={handleChange} name="password" value={password} />
                 <div className="buttons-container">
                     <Button type='submit' >submit</Button>
-                    <Button type='button' onClick={logGoogleUser} buttonType='google'>SignIn With Google</Button>
+                    <Button type='button' onClick={signInWithGoogle} buttonType='google'>SignIn With Google</Button>
                 </div>
             </form>
         </div >
